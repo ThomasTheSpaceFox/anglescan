@@ -8,6 +8,7 @@ import pygame.mixer
 import pygame
 import anglescan
 import time
+import sys
 
 
 
@@ -19,6 +20,7 @@ bg=pygame.image.load("bg.png")
 pygame.display.init()
 screensurf=pygame.display.set_mode((800, 600))
 scalesurf=pygame.Surface((200, 150)).convert()
+scaledest=pygame.Surface((800, 600)).convert()
 screensurf.blit(bg, (0, 0))
 
 scaleXA=pygame.image.load("scale.png").convert()
@@ -32,12 +34,15 @@ pygame.display.update()
 engtimer=pygame.time.Clock()
 while True:
 	scalesurf.blit(scaleX, (0, -75))
-	rectx=anglescan.verticalanglescan(scaleX, scalesurf, 75, 75, 1.5, 0.6, 2, 1, 1, 0)
-	screensurf.blit(pygame.transform.scale(scalesurf, (800, 600)), (0, 0))
+	rectx=anglescan.verticalanglescan(scaleX, scalesurf, 75, 75, 0.6, 0.6, 2, 1, 1, 0, backprop=0, siderepeat=0)
+	pygame.transform.scale(scalesurf, (800, 600), screensurf)
+	#screensurf.blit(scaledest, (0, 0))
 	screensurf.blit(shadow, (0, 0))
 	pygame.display.update()
 	pygame.event.pump()
 	key=pygame.key.get_pressed()
+	if key[pygame.K_ESCAPE]:
+		sys.exit()
 	if key[pygame.K_LEFT]:
 		scaleX=anglescan.hscroll(7, scaleX)
 	elif key[pygame.K_RIGHT]:

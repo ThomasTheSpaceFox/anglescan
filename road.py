@@ -8,6 +8,7 @@ import pygame.mixer
 import pygame
 import anglescan
 import time
+import sys
 
 
 scaleXA=pygame.image.load("road.png")
@@ -40,6 +41,8 @@ while True:
 	pygame.display.update()
 	pygame.event.pump()
 	key=pygame.key.get_pressed()
+	if key[pygame.K_ESCAPE]:
+		sys.exit()
 	if key[pygame.K_SPACE]:
 		jump=1
 	if jump==1:

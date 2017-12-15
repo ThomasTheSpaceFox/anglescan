@@ -8,25 +8,34 @@ import pygame.mixer
 import pygame
 import math
 
-def verticalanglescan(texture, surface, height, y, wgrowfactor, hgrowfactor, skipline=1, scalefactor=1, sizescale=1, antialias=0, fliponneg=1):
+def verticalanglescan(texture, surface, height, y, wgrowfactor, hgrowfactor, skipline=1, scalefactor=1, sizescale=1, antialias=0, fliponneg=1, backprop=0, fillercolor=((0, 0, 0)), colorfill=1, siderepeat=0, lpane=None, rpane=None):
 	#texture=pygame.transform.scale(texture, (int(surface.get_width()*float(wgrowfactor)), height))
 	wval=surface.get_width()
-	hval=y
+	
 	if height<0:
 		height=abs(height)
 		if fliponneg==1:
 			texture=pygame.transform.flip(texture, 0, 1)
+		y+=backprop
+		height+=backprop
 		neg=1
 	else:
 		neg=0
+		y-=backprop
+		height+=backprop
+	hval=y
 	surfacewidth=surface.get_width()*float(sizescale)
 	scalewidth=surfacewidth*float(scalefactor)
 	surfaceheight=surface.get_height()
 	scaleheight=height*float(scalefactor)
 	scalejumpx=(surfacewidth*float(wgrowfactor))/float(height)
 	scalejumpy=(height*float(hgrowfactor))/float(height)
+	scalewidth -= scalejumpx*backprop
+	scaleheight -= scalejumpy*backprop
 	while (hval<y+height and hval<surfaceheight and neg==0) or (hval>y-height-skipline and hval>-skipline and neg==1):
 		surface.set_clip(pygame.Rect(0, hval, wval, skipline))
+		if colorfill==1:
+			surface.fill(fillercolor)
 		#print surface.get_clip()
 		scalewidth += scalejumpx*skipline
 		scaleheight += scalejumpy*skipline
@@ -35,19 +44,62 @@ def verticalanglescan(texture, surface, height, y, wgrowfactor, hgrowfactor, ski
 			texscale=pygame.transform.scale(texture, (abs(int(scalewidth)), abs(int(scaleheight))))
 		else:
 			texscale=pygame.transform.smoothscale(texture, (abs(int(scalewidth)), abs(int(scaleheight))))
+		
 		#print scalewidth
 		#print xoffset
-		if neg==1:
-			blitrect=texscale.get_rect()
-			blitrect.x=xoffset
-			blitrect.bottom=y
-			surface.blit(texscale, blitrect)
-		else:
-			
-			surface.blit(texscale, (xoffset, y))
-		if scalewidth<surfacewidth:
-			surface.blit(texscale, (xoffset+scalewidth, y))
-			surface.blit(texscale, (xoffset-scalewidth, y))
+		if (hval>=0 and neg==0) or (hval<=surfaceheight and neg==1):
+			if neg==1:
+				blitrect=texscale.get_rect()
+				blitrect.x=xoffset
+				blitrect.bottom=y
+				surface.blit(texscale, blitrect)
+				if scalewidth<surfacewidth and (siderepeat==1 or siderepeat==2):
+					if lpane!=None:
+						if antialias==0:
+							texscalelp=pygame.transform.scale(lpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalelp=pygame.transform.smoothscale(lpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalelp, (xoffset-scalewidth, blitrect.y))
+						
+					else:
+						surface.blit(texscale, (xoffset-scalewidth, blitrect.y))
+					if rpane!=None:
+						if antialias==0:
+							texscalerp=pygame.transform.scale(rpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalerp=pygame.transform.smoothscale(rpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalerp, (xoffset+scalewidth, blitrect.y))
+						
+					else:
+						surface.blit(texscale, (xoffset+scalewidth, blitrect.y))
+					
+					
+				if scalewidth*3<surfacewidth and siderepeat==2:
+					surface.blit(texscale, (xoffset+scalewidth*2, blitrect.y))
+					surface.blit(texscale, (xoffset-scalewidth*2, blitrect.y))
+			else:
+				
+				surface.blit(texscale, (xoffset, y))
+				if scalewidth<surfacewidth and (siderepeat==1 or siderepeat==2):
+					if lpane!=None:
+						if antialias==0:
+							texscalelp=pygame.transform.scale(lpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalelp=pygame.transform.smoothscale(lpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalelp, (xoffset-scalewidth, y))
+					else:
+						surface.blit(texscale, (xoffset-scalewidth, y))
+					if rpane!=None:
+						if antialias==0:
+							texscalerp=pygame.transform.scale(rpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalerp=pygame.transform.smoothscale(rpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalerp, (xoffset+scalewidth, y))
+					else:
+						surface.blit(texscale, (xoffset+scalewidth, y))
+				if scalewidth*3<surfacewidth and siderepeat==2:
+					surface.blit(texscale, (xoffset+scalewidth*2, y))
+					surface.blit(texscale, (xoffset-scalewidth*2, y))
 		if neg==0:
 			hval+=skipline
 		else:
@@ -56,13 +108,127 @@ def verticalanglescan(texture, surface, height, y, wgrowfactor, hgrowfactor, ski
 	return pygame.Rect(0, y, surface.get_width(), height)
 
 
-def rotatefeild(texture, destsurf, degrees):
+def horizontalanglescan(texture, surface, width, x, hgrowfactor, wgrowfactor, skipline=1, scalefactor=1, sizescale=1, antialias=0, fliponneg=1, backprop=0, fillercolor=((0, 0, 0)), colorfill=1, siderepeat=0, upane=None, dpane=None):
+	#texture=pygame.transform.scale(texture, (int(surface.get_width()*float(wgrowfactor)), width))
+	hval=surface.get_height()
+	
+	if width<0:
+		width=abs(width)
+		if fliponneg==1:
+			texture=pygame.transform.flip(texture, 1, 0)
+		x+=backprop
+		width+=backprop
+		neg=1
+	else:
+		neg=0
+		x-=backprop
+		width+=backprop
+	wval=x
+	surfaceheight=surface.get_height()*float(sizescale)
+	scaleheight=surfaceheight*float(scalefactor)
+	surfacewidth=surface.get_width()
+	scalewidth=width*float(scalefactor)
+	scalejumpy=(surfaceheight*float(wgrowfactor))/float(width)
+	scalejumpx=(width*float(hgrowfactor))/float(width)
+	scalewidth -= scalejumpx*backprop
+	scaleheight -= scalejumpy*backprop
+	while (wval<x+width and wval<surfacewidth and neg==0) or (wval>x-width-skipline and wval>-skipline and neg==1):
+		surface.set_clip(pygame.Rect(wval, 0, skipline, hval))
+		if colorfill==1:
+			surface.fill(fillercolor)
+		#print surface.get_clip()
+		scalewidth += scalejumpx*skipline
+		scaleheight += scalejumpy*skipline
+		yoffset=int(0-((scaleheight-surfaceheight)/2))
+		if (wval>=0 and neg==0) or (wval<=surfacewidth and neg==1):
+			if antialias==0:
+				texscale=pygame.transform.scale(texture, (abs(int(scalewidth)), abs(int(scaleheight))))
+			else:
+				texscale=pygame.transform.smoothscale(texture, (abs(int(scalewidth)), abs(int(scaleheight))))
+			
+			#print scalewidth
+			#print xoffset
+			if neg==1:
+				blitrect=texscale.get_rect()
+				blitrect.y=yoffset
+				blitrect.right=x
+				surface.blit(texscale, blitrect)
+				if scaleheight<surfaceheight and (siderepeat==1 or siderepeat==2):
+					if upane!=None:
+						if antialias==0:
+							texscalelp=pygame.transform.scale(upane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalelp=pygame.transform.smoothscale(upane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalelp, (blitrect.x, yoffset-scaleheight))
+						
+					else:
+						surface.blit(texscale, (blitrect.x, yoffset-scaleheight))
+					if dpane!=None:
+						if antialias==0:
+							texscalerp=pygame.transform.scale(dpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalerp=pygame.transform.smoothscale(dpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalerp, (blitrect.x, yoffset+scaleheight))
+						
+					else:
+						surface.blit(texscale, (blitrect.x, yoffset+scaleheight))
+					
+					
+				if scaleheight*3<surfaceheight and siderepeat==2:
+					surface.blit(texscale, (blitrect.x, yoffset+scaleheight*2))
+					surface.blit(texscale, (blitrect.x, yoffset-scaleheight*2))
+			else:
+				
+				surface.blit(texscale, (x, yoffset))
+				if scaleheight<surfaceheight and (siderepeat==1 or siderepeat==2):
+					if upane!=None:
+						if antialias==0:
+							texscalelp=pygame.transform.scale(upane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalelp=pygame.transform.smoothscale(upane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalelp, (x, yoffset-scaleheight))
+					else:
+						surface.blit(texscale, (x, yoffset-scaleheight))
+					if dpane!=None:
+						if antialias==0:
+							texscalerp=pygame.transform.scale(dpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						else:
+							texscalerp=pygame.transform.smoothscale(dpane, (abs(int(scalewidth)), abs(int(scaleheight))))
+						surface.blit(texscalerp, (x, yoffset+scaleheight))
+					else:
+						surface.blit(texscale, (x, yoffset+scaleheight))
+				if scaleheight*3<surfaceheight and siderepeat==2:
+					surface.blit(texscale, (x, yoffset+scaleheight*2))
+					surface.blit(texscale, (x, yoffset-scaleheight*2))
+		if neg==0:
+			wval+=skipline
+		else:
+			wval-=skipline
+	surface.set_clip(None)
+	return pygame.Rect(0, x, width, surface.get_height())
+
+def rotatefeild(texture, destsurf, degrees, lpane=None, rpane=None):
 	scalerotsurfrect=destsurf.get_rect()
 	scaleXg=pygame.transform.rotate(texture, degrees)
+	destwidth=destsurf.get_width()
 	scalerect=scaleXg.get_rect()
+	scalerectr=scaleXg.get_rect()
+	scalerectl=scaleXg.get_rect()
+	
 	scalerect.centerx=scalerotsurfrect.centerx
 	scalerect.centery=scalerotsurfrect.centery
+	
+	scalerectr=scalerect.move(-destwidth, 0)
+	scalerectl=scalerect.move(destwidth, 0)
+	#print scalerectl.x
+	#print scalerect.x
+	#print scalerectr.x
+	#print scalerotsurfrect.centerx-destwidth
 	destsurf.blit(scaleXg, scalerect)
+	if lpane!=None:
+		lpane.blit(scaleXg, scalerectl)
+	if rpane!=None:
+		rpane.blit(scaleXg, scalerectr)
 
 
 def hscroll(scrollval, image):

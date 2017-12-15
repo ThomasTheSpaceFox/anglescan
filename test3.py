@@ -38,6 +38,7 @@ wscale=0.8
 hscale=0.8
 wscale=2.1
 hscale=2.1
+originscale=1.0
 while True:
 	#the texture, (scaleXA) should be larger enough than the destination surface (scalerotsurf), so that no edges are visible. 
 	#this will vary with verticalanglescan arguments.
@@ -49,23 +50,31 @@ while True:
 	#scalesurf.blit(bg, (0, -75))
 	#arguments in order: texture, blit surface, effect height, effect y position,
 	# width scale, height scale, rescale skip (numbers greater than 1 are faster but are increasingly distorted.)
-	rectx=anglescan.verticalanglescan(scaleX, scalesurf, 60, 90, wscale, hscale, 2)
+	# scale factor of horizon (height and surface width are multiplied by this to create starting width and height)
+	# antialiasing (slower) [bool]
+	# flip texture on negative height [bool]
+	# ammount to reverse back from y
+	# filler color
+	#rectx=anglescan.verticalanglescan(pygame.transform.rotate(scaleX, 180), scalesurf, -60, 90, -wscale, -hscale, 2)
+	rectx=anglescan.verticalanglescan(scaleX, scalesurf, 60, 90, wscale, hscale, skipline=2, scalefactor=originscale, backprop=40, fillercolor=(0, 100, 10), siderepeat=2)
 	screensurf.blit(pygame.transform.scale(scalesurf, (800, 600)), (0, 0))
 	rectx.w *= 4
 	rectx.h *= 4
 	rectx.x *= 4
 	rectx.y *= 4
-	pygame.display.update(rectx)
+	pygame.display.update()
 	pygame.event.pump()
 	key=pygame.key.get_pressed()
+	if key[pygame.K_ESCAPE]:
+		sys.exit()
 	if key[pygame.K_SPACE]:
 		scaleXA=anglescan.vscroll(8, scaleXA)
 	if key[pygame.K_LEFT]:
 		#scaleXA=hscroll(7, scaleXA)
-		rotdeg+=4
+		rotdeg+=5
 	elif key[pygame.K_RIGHT]:
 		#scaleXA=hscroll(-7, scaleXA)
-		rotdeg-=4
+		rotdeg-=5
 	#else:
 	#	rotdeg-=2
 	if key[pygame.K_UP]:
@@ -76,6 +85,12 @@ while True:
 		wscale-=0.01
 		hscale-=0.01
 		print wscale
+	if key[pygame.K_PAGEUP]:
+		originscale += 0.01
+		print originscale
+	elif key[pygame.K_PAGEDOWN]:
+		originscale -= 0.01
+		print originscale
 	#print time.time()
 	engtimer.tick(30)
 	print engtimer.get_fps()
