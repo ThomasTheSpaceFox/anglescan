@@ -11,7 +11,7 @@ import math
 def verticalanglescan(texture, surface, height, y, wgrowfactor, hgrowfactor, skipline=1, scalefactor=1, sizescale=1, antialias=0, fliponneg=1, backprop=0, fillercolor=((0, 0, 0)), colorfill=1, siderepeat=0, lpane=None, rpane=None):
 	#texture=pygame.transform.scale(texture, (int(surface.get_width()*float(wgrowfactor)), height))
 	wval=surface.get_width()
-	
+	backprop=backprop*float(scalefactor)
 	if height<0:
 		height=abs(height)
 		if fliponneg==1:
@@ -111,7 +111,7 @@ def verticalanglescan(texture, surface, height, y, wgrowfactor, hgrowfactor, ski
 def horizontalanglescan(texture, surface, width, x, hgrowfactor, wgrowfactor, skipline=1, scalefactor=1, sizescale=1, antialias=0, fliponneg=1, backprop=0, fillercolor=((0, 0, 0)), colorfill=1, siderepeat=0, upane=None, dpane=None):
 	#texture=pygame.transform.scale(texture, (int(surface.get_width()*float(wgrowfactor)), width))
 	hval=surface.get_height()
-	
+	backprop=backprop*float(scalefactor)
 	if width<0:
 		width=abs(width)
 		if fliponneg==1:
@@ -269,4 +269,57 @@ def rotoscroll(surface, degrees, offset):
 		surface=vscroll(int(rottoup[1]), surface)
 	return surface
 		
-	
+
+def hspriteroto(texture, degrees, surface, growfactor=0.3, lineskip=1):
+	width=surface.get_width()
+	height=surface.get_height()
+	growfactor=float(growfactor)
+	if degrees>180:
+		degrees-=180
+		texture=pygame.transform.flip(texture, 1, 0)
+	if degrees>90:
+		degrees-=90
+		inverteffect=1
+		widthval=int((width/float(90))*abs(degrees-90))
+		texture=pygame.transform.flip(texture, 1, 0)
+		scaleval=(growfactor/90)*degrees
+	else:
+		inverteffect=0
+		widthval=int((width/float(90))*degrees)
+		scaleval=(growfactor/90)*abs(degrees-90)
+	if widthval==0:
+		widthval=1
+	if inverteffect==1:
+		horizontalanglescan(texture, surface, 1, width//2+widthval//2, scaleval, scaleval, colorfill=0, backprop=widthval, skipline=lineskip)
+	else:
+		horizontalanglescan(texture, surface, -1, width//2-widthval//2, scaleval, scaleval, colorfill=0, backprop=widthval, skipline=lineskip)
+	return surface
+
+def vspriteroto(texture, degrees, surface, growfactor=0.3, lineskip=1):
+	height=surface.get_height()
+	width=surface.get_width()
+	growfactor=float(growfactor)
+	if degrees>180:
+		degrees-=180
+		texture=pygame.transform.flip(texture, 0, 1)
+	if degrees>90:
+		degrees-=90
+		inverteffect=1
+		heightval=int((height/float(90))*abs(degrees-90))
+		texture=pygame.transform.flip(texture, 0, 1)
+		scaleval=(growfactor/90)*degrees
+	else:
+		inverteffect=0
+		heightval=int((height/float(90))*degrees)
+		scaleval=(growfactor/90)*abs(degrees-90)
+	if heightval==0:
+		heightval=1
+	if inverteffect==1:
+		verticalanglescan(texture, surface, 1, height//2+heightval//2, scaleval, scaleval, colorfill=0, backprop=heightval, skipline=lineskip)
+	else:
+		verticalanglescan(texture, surface, -1, height//2-heightval//2, scaleval, scaleval, colorfill=0, backprop=heightval, skipline=lineskip)
+	return surface
+
+
+
+

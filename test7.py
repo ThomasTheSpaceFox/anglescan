@@ -20,7 +20,9 @@ scaleX=scaleXA
 polar=1
 bg=pygame.image.load("bg.png").convert()
 
-fogx=pygame.transform.scale(fogx, (50, 400))
+fogx=pygame.transform.scale(fogx, (50, 400)).convert_alpha()
+bgx=pygame.transform.scale(bg, (50, 400)).convert()
+
 
 scalesurf=pygame.Surface((50, 400)).convert()
 screensurf.blit(bg, (0, 0))
@@ -39,9 +41,9 @@ while True:
 	# antialiasing (slower) [bool]
 	# flip texture on negative height [bool]
 	#scalesurf.fill((172, 221, 225))
-	
+	#scalesurf.blit(bgx, (0, 0))
 	#note: terms are slightly different for horizontal version. most notably, the width and height scaling values are reversed in argument order, and sevral argument names are different.
-	rectx=anglescan.horizontalanglescan(scaleX, scalesurf, (50-viewskew)//3, (120+viewskew)//3, 1.0, 1.0, 1, 1, 1, 0, backprop=25//3, siderepeat=1)
+	rectx=anglescan.horizontalanglescan(scaleX, scalesurf, (50-viewskew)//3, (120+viewskew)//3, 1.0, 1.0, 1, 1, 1, 0, backprop=25//3, colorfill=0, siderepeat=1)
 	rectx=anglescan.horizontalanglescan(scaleX, scalesurf, -(50+viewskew)//3, (30+viewskew)//3, 1.0, 1.0, 1, 1, 1, 0, 1, colorfill=0, backprop=25//3, siderepeat=1)
 	#screensurf.blit(pygame.transform.scale(scalesurf, (800, 600)), (0, 0))
 	scalesurf.blit(fogx, ((0+viewskew)//3, 0))
